@@ -3,8 +3,8 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
 import { 
-  FileText, BadgeDollarSign, Wallet, 
-  MessageCircle, Users, PhoneCall, CheckCircle2, AlertCircle, LogOut, Check, ChevronRight
+  BadgeDollarSign, Wallet, 
+  MessageCircle, Users, PhoneCall, CheckCircle2, AlertCircle, LogOut, Check, ChevronRight, ChevronLeft, BookOpen
 } from 'lucide-react'
 
 export default function Dashboard() {
@@ -12,14 +12,19 @@ export default function Dashboard() {
   
   const [profilWarga, setProfilWarga] = useState<any>(null)
   const [tagihanTerbaru, setTagihanTerbaru] = useState<any>(null)
-  // Default loading true agar sinkron dengan render pertama (mencegah hydration error)
+  const [pengumumanList, setPengumumanList] = useState<any[]>([]) 
+  const [currentSlide, setCurrentSlide] = useState(0) 
   const [loading, setLoading] = useState(true) 
+
+  // LOGIKA SWIPE/DRAG
+  const [touchStart, setTouchStart] = useState(0)
+  const [touchEnd, setTouchEnd] = useState(0)
 
   const [showToast, setShowToast] = useState(false)
   const [toastMsg, setToastMsg] = useState('')
 
+  // AMBIL DATA
   useEffect(() => {
-    // Dipanggil sekali saja saat halaman pertama kali dibuka
     const getData = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       
@@ -36,15 +41,57 @@ export default function Dashboard() {
       const { data: warga } = await supabase.from('warga').select('*').eq('email', session.user.email).single()
       if (warga) {
         setProfilWarga(warga)
-        const { data: tagihan } = await supabase.from('tagihan').select('*').eq('warga_id', warga.id).order('created_at', { ascending: false }).limit(1).single()
+        
+        const { data: tagihan } = await supabase.from('tagihan').select('*').eq('warga_id', warga.id).order('created_at', { ascending: false }).limit(1).maybeSingle()
         if (tagihan) setTagihanTerbaru(tagihan)
+
+        const { data: info } = await supabase.from('pengumuman').select('*').order('tanggal_acara', { ascending: false }).limit(5)
+        if (info) setPengumumanList(info)
       }
       
       setLoading(false)
     }
 
     getData()
-  }, []) // <-- KUNCINYA DI SINI: Array kosong [] mencegah Infinite Loop
+  }, [router])
+
+  // AUTO-SLIDE PENGUMUMAN (Reset timer kalau di-klik manual)
+  useEffect(() => {
+    if (pengumumanList.length > 1) {
+      const interval = setInterval(() => {
+        setCurrentSlide((prev) => (prev === pengumumanList.length - 1 ? 0 : prev + 1))
+      }, 5000) // Geser otomatis tiap 5 detik
+      
+      return () => clearInterval(interval)
+    }
+  }, [pengumumanList.length]) // <-- Fixed timer dependency
+
+  // FUNGSI GANTI SLIDE MANUAL
+  const nextSlide = () => setCurrentSlide((prev) => (prev === pengumumanList.length - 1 ? 0 : prev + 1))
+  const prevSlide = () => setCurrentSlide((prev) => (prev === 0 ? pengumumanList.length - 1 : prev - 1))
+
+  // FUNGSI BACA GERAKAN SWIPE/DRAG
+  const handleDragStart = (clientX: number) => {
+    setTouchStart(clientX)
+    setTouchEnd(clientX)
+  }
+
+  const handleDragMove = (clientX: number) => {
+    if (touchStart) setTouchEnd(clientX)
+  }
+
+  const handleDragEnd = () => {
+    if (!touchStart || !touchEnd) return
+    const distance = touchStart - touchEnd
+    const isLeftSwipe = distance > 50
+    const isRightSwipe = distance < -50
+
+    if (isLeftSwipe) nextSlide()
+    if (isRightSwipe) prevSlide()
+    
+    setTouchStart(0)
+    setTouchEnd(0)
+  }
 
   const triggerAlert = (msg: string) => {
     setToastMsg(msg)
@@ -67,7 +114,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8">
+    <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8 overflow-x-hidden">
       
       {showToast && (
         <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500">
@@ -104,20 +151,90 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* BANNER PENGUMUMAN SLIDER (BISA DIGESER) */}
+        {!loading && pengumumanList.length > 0 && (
+          <div className="px-6 md:px-12 mt-6 animate-in fade-in slide-in-from-top-10 duration-500">
+            <div className="relative group">
+              
+              {/* Wrapper Slider dengan Sensor Drag */}
+              <div 
+                className="relative overflow-hidden rounded-[28px] cursor-grab active:cursor-grabbing border border-amber-200 shadow-sm"
+                onTouchStart={e => handleDragStart(e.touches[0].clientX)}
+                onTouchMove={e => handleDragMove(e.touches[0].clientX)}
+                onTouchEnd={handleDragEnd}
+                onMouseDown={e => handleDragStart(e.clientX)}
+                onMouseMove={e => handleDragMove(e.clientX)}
+                onMouseUp={handleDragEnd}
+                onMouseLeave={handleDragEnd}
+              >
+                <div 
+                  className="flex transition-transform duration-500 ease-out"
+                  style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+                >
+                  {pengumumanList.map((p) => (
+                    <div key={p.id} className="w-full shrink-0 bg-gradient-to-r from-amber-50 to-orange-50 p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center gap-4 relative">
+                       {/* Efek Glow */}
+                       <div className="absolute -right-4 -top-4 w-32 h-32 bg-amber-200/50 rounded-full blur-2xl pointer-events-none"></div>
+                       
+                       <div className="flex-1 z-10 pl-2">
+                         <div className="flex items-center gap-2 mb-1">
+                           <span className="px-2 py-0.5 bg-orange-500 text-white text-[9px] font-black uppercase tracking-widest rounded-md shadow-sm animate-pulse pointer-events-none">Info Warga</span>
+                           <span className="text-[10px] font-bold text-orange-600/80 uppercase tracking-widest pointer-events-none">
+                             {new Date(p.tanggal_acara).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                           </span>
+                         </div>
+                         <h3 className="font-black text-sm md:text-base uppercase text-orange-900 leading-tight mb-1 pointer-events-none">{p.judul}</h3>
+                         <p className="text-[10px] md:text-xs font-bold text-orange-700/80 leading-relaxed line-clamp-2 pointer-events-none">{p.isi}</p>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Tombol Kiri/Kanan Khusus Desktop (Muncul Pas Hover) */}
+              {pengumumanList.length > 1 && (
+                <>
+                  <button onClick={prevSlide} className="absolute -left-3 top-1/2 -translate-y-1/2 bg-white text-orange-500 p-2 rounded-full shadow-lg border border-gray-100 opacity-0 group-hover:opacity-100 transition-all hover:bg-orange-500 hover:text-white hidden md:block z-20">
+                    <ChevronLeft size={20}/>
+                  </button>
+                  <button onClick={nextSlide} className="absolute -right-3 top-1/2 -translate-y-1/2 bg-white text-orange-500 p-2 rounded-full shadow-lg border border-gray-100 opacity-0 group-hover:opacity-100 transition-all hover:bg-orange-500 hover:text-white hidden md:block z-20">
+                    <ChevronRight size={20}/>
+                  </button>
+                </>
+              )}
+
+              {/* Titik Indikator (Dots) */}
+              {pengumumanList.length > 1 && (
+                <div className="flex justify-center items-center gap-1.5 mt-3">
+                  {pengumumanList.map((_, idx) => (
+                    <button 
+                      key={idx} 
+                      onClick={() => setCurrentSlide(idx)}
+                      className={`h-1.5 rounded-full transition-all duration-300 outline-none ${idx === currentSlide ? 'w-5 bg-orange-500' : 'w-1.5 bg-orange-200 hover:bg-orange-400'}`}
+                      aria-label={`Lihat info ke-${idx + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* content */}
-        <div className="flex flex-col md:flex-row gap-8 px-6 md:px-12 mt-8 md:mt-12 md:pb-12">
+        <div className="flex flex-col md:flex-row gap-8 px-6 md:px-12 mt-6 md:mt-8 md:pb-12">
           
           {/* bagian kiri (menu utama) */}
           <div className="flex-1">
-            <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-5 flex items-center gap-2">
+            <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
               <span className="w-2 h-2 rounded-full bg-blue-500"></span> Layanan Warga
             </h3>
             
             <div className="grid grid-cols-3 md:grid-cols-3 gap-4 text-center">
               
-              <button onClick={() => router.push('/tata-tertib')} className="flex flex-col items-center group p-3 md:p-6 rounded-3xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100 outline-none">
-                <span className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-teal-50 to-teal-100/50 rounded-2xl flex items-center justify-center mb-3 shadow-sm group-active:scale-90 transition-transform border border-teal-100/50"><FileText className="text-teal-600 w-6 h-6 md:w-8 md:h-8 drop-shadow-sm" /></span>
-                <span className="text-[10px] md:text-xs font-black uppercase tracking-tighter text-gray-700 group-hover:text-black">Aturan</span>
+              {/* TOMBOL PANDUAN (Sudah Diupdate) */}
+              <button onClick={() => router.push('/panduan')} className="flex flex-col items-center group p-3 md:p-6 rounded-3xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100 outline-none">
+                <span className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-teal-50 to-teal-100/50 rounded-2xl flex items-center justify-center mb-3 shadow-sm group-active:scale-90 transition-transform border border-teal-100/50"><BookOpen className="text-teal-600 w-6 h-6 md:w-8 md:h-8 drop-shadow-sm" /></span>
+                <span className="text-[10px] md:text-xs font-black uppercase tracking-tighter text-gray-700 group-hover:text-black">Panduan</span>
               </button>
 
               <button onClick={() => router.push('/tagihan')} className="flex flex-col items-center group p-3 md:p-6 rounded-3xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100 outline-none">
@@ -149,7 +266,7 @@ export default function Dashboard() {
           </div>
 
           {/* Bagian Kanan: Widget Tagihan */}
-          <div className="w-full md:w-[380px] mt-4 md:mt-0">
+          <div className="w-full md:w-[380px] mt-2 md:mt-0">
             <div className="flex justify-between items-center mb-4">
               <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span> Info Tagihan

@@ -3,18 +3,18 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
 import { 
-  Search, RefreshCcw, PlusCircle, LogOut, Phone, Trash2, Edit3, Check, AlertTriangle, Plus, ShieldCheck, UserPlus
+  Search, RefreshCcw, PlusCircle, LogOut, Phone, Trash2, Edit3, Check, AlertTriangle, Plus, ShieldCheck, UserPlus, Megaphone
 } from 'lucide-react'
 
 export default function AdminPanel() {
   const router = useRouter()
-  // STATE ANTI-HYDRATION ERROR
   const [isMounted, setIsMounted] = useState(false)
   
   const [loading, setLoading] = useState(true)
   const [dataTagihan, setDataTagihan] = useState<any[]>([])
   const [dataWarga, setDataWarga] = useState<any[]>([])
   const [dataKontak, setDataKontak] = useState<any[]>([])
+  const [dataPengumuman, setDataPengumuman] = useState<any[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   
   const [bulanBaru, setBulanBaru] = useState('')
@@ -26,9 +26,11 @@ export default function AdminPanel() {
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' })
   const [confirmModal, setConfirmModal] = useState({ show: false, msg: '', action: () => {} })
   
-  // MODAL INPUT (PENGGANTI PROMPT JADUL)
+  // MODAL INPUT
   const [contactModal, setContactModal] = useState({ show: false, nama: '', nomer: '' })
   const [nominalModal, setNominalModal] = useState({ show: false, id: '', blok: '', nama: '', nominal: '' })
+  // MODAL PENGUMUMAN BARU
+  const [pengumumanModal, setPengumumanModal] = useState({ show: false, id: null as string | null, judul: '', isi: '', tanggal_acara: '' })
 
   useEffect(() => {
     setIsMounted(true)
@@ -45,10 +47,11 @@ export default function AdminPanel() {
   }, [router])
 
   const refreshData = async () => {
-    const [tagihan, warga, kontak] = await Promise.all([
+    const [tagihan, warga, kontak, pengumuman] = await Promise.all([
       supabase.from('tagihan').select('*, warga(*)').order('created_at', { ascending: false }),
       supabase.from('warga').select('*').neq('email', 'admin@sekar.com').order('blok_rumah', { ascending: true }),
-      supabase.from('kontak_darurat').select('*').order('created_at', { ascending: false })
+      supabase.from('kontak_darurat').select('*').order('created_at', { ascending: false }),
+      supabase.from('pengumuman').select('*').order('tanggal_acara', { ascending: false })
     ])
     
     const filteredTagihan = tagihan.data?.filter(t => t.warga?.email !== 'admin@sekar.com') || []
@@ -56,11 +59,57 @@ export default function AdminPanel() {
     setDataTagihan(filteredTagihan)
     setDataWarga(warga.data || [])
     setDataKontak(kontak.data || [])
+    setDataPengumuman(pengumuman.data || [])
   }
 
   const triggerToast = (msg: string, type = 'success') => {
     setToast({ show: true, msg, type })
     setTimeout(() => setToast({ show: false, msg: '', type: 'success' }), 3000)
+  }
+
+  // --- LOGIKA PENGUMUMAN ---
+  const simpanPengumuman = async () => {
+    if (!pengumumanModal.judul || !pengumumanModal.isi || !pengumumanModal.tanggal_acara) {
+      return triggerToast("Isi semua data pengumuman!", "error")
+    }
+
+    const payload = {
+      judul: pengumumanModal.judul,
+      isi: pengumumanModal.isi,
+      tanggal_acara: pengumumanModal.tanggal_acara
+    }
+
+    let error
+    if (pengumumanModal.id) {
+      // UPDATE
+      const res = await supabase.from('pengumuman').update(payload).eq('id', pengumumanModal.id)
+      error = res.error
+    } else {
+      // INSERT BARU
+      const res = await supabase.from('pengumuman').insert([payload])
+      error = res.error
+    }
+
+    if (!error) {
+      await refreshData()
+      triggerToast(pengumumanModal.id ? "Pengumuman diupdate" : "Pengumuman disiarkan", "success")
+      setPengumumanModal({ show: false, id: null, judul: '', isi: '', tanggal_acara: '' })
+    } else {
+      triggerToast("Gagal! Cek tabel 'pengumuman' di Supabase", "error")
+    }
+  }
+
+  const hapusPengumuman = (id: string) => {
+    setConfirmModal({
+      show: true,
+      msg: "Hapus pengumuman ini secara permanen?",
+      action: async () => {
+        await supabase.from('pengumuman').delete().eq('id', id)
+        await refreshData()
+        triggerToast("Pengumuman dihapus")
+        setConfirmModal({ ...confirmModal, show: false })
+      }
+    })
   }
 
   // --- LOGIKA IURAN ---
@@ -121,7 +170,7 @@ export default function AdminPanel() {
     triggerToast(`Status: ${stat}`)
   }
 
-  // --- LOGIKA KONTAK (MODAL BARU) ---
+  // --- LOGIKA KONTAK ---
   const executeTambahKontak = async () => {
     if (!contactModal.nama || !contactModal.nomer) return triggerToast("Isi semua data kontak!", "error")
     
@@ -134,7 +183,7 @@ export default function AdminPanel() {
     if (!error) {
       await refreshData()
       triggerToast("Kontak berhasil ditambah")
-      setContactModal({ show: false, nama: '', nomer: '' }) // Tutup & reset
+      setContactModal({ show: false, nama: '', nomer: '' })
     } else {
       triggerToast("Gagal menambah kontak", "error")
     }
@@ -153,7 +202,7 @@ export default function AdminPanel() {
     })
   }
 
-  // --- LOGIKA UBAH NOMINAL WARGA (MODAL BARU) ---
+  // --- LOGIKA UBAH NOMINAL WARGA ---
   const executeEditNominal = async () => {
     if (!nominalModal.nominal || isNaN(Number(nominalModal.nominal))) return triggerToast("Nominal tidak valid!", "error")
     
@@ -164,7 +213,7 @@ export default function AdminPanel() {
     if (!error) {
       await refreshData()
       triggerToast("Nominal berhasil diupdate")
-      setNominalModal({ show: false, id: '', blok: '', nama: '', nominal: '' }) // Tutup & reset
+      setNominalModal({ show: false, id: '', blok: '', nama: '', nominal: '' })
     } else {
       triggerToast("Gagal update nominal", "error")
     }
@@ -187,9 +236,9 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8">
       
-      {/* 1. CUSTOM TOAST ALERT */}
+      {/* 1. CUSTOM TOAST ALERT (Z-INDEX NAIK JADI 9999 BIAR NEMBUS MODAL) */}
       {toast.show && (
-        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500">
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[9999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500 w-max">
           <div className={`${toast.type === 'success' ? 'bg-black' : 'bg-red-600'} text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-4 border border-white/10 backdrop-blur-md`}>
             <div className={`${toast.type === 'success' ? 'bg-green-500' : 'bg-white/20'} p-2 rounded-full shadow-lg`}>
               {toast.type === 'success' ? <Check className="text-white w-4 h-4" strokeWidth={4} /> : <AlertTriangle className="text-white w-4 h-4" strokeWidth={4} />}
@@ -216,7 +265,58 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* 3. MODAL TAMBAH KONTAK (PENGGANTI PROMPT) */}
+      {/* 3. MODAL PENGUMUMAN */}
+      {pengumumanModal.show && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 backdrop-blur-md bg-black/60 animate-in fade-in duration-300">
+          <div className="bg-white w-full max-w-md rounded-[40px] p-8 shadow-2xl border border-gray-100 animate-in zoom-in duration-300">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-12 h-12 bg-amber-50 text-orange-500 rounded-full flex items-center justify-center">
+                <Megaphone size={24} />
+              </div>
+              <h3 className="font-black text-lg uppercase text-black">{pengumumanModal.id ? 'Edit Pengumuman' : 'Buat Pengumuman'}</h3>
+            </div>
+            
+            <div className="space-y-4 mb-8 text-left">
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-1 block">Judul Info / Acara</label>
+                <input 
+                  type="text" 
+                  placeholder="Misal: Kerja Bakti Rutin" 
+                  className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-[20px] font-bold text-sm outline-none focus:border-amber-500 focus:bg-white transition-all text-black" 
+                  value={pengumumanModal.judul} 
+                  onChange={e => setPengumumanModal({...pengumumanModal, judul: e.target.value})} 
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-1 block">Detail Pengumuman</label>
+                <textarea 
+                  rows={4}
+                  placeholder="Penjelasan detail acaranya..." 
+                  className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-[20px] font-bold text-sm outline-none focus:border-amber-500 focus:bg-white transition-all resize-none text-black" 
+                  value={pengumumanModal.isi} 
+                  onChange={e => setPengumumanModal({...pengumumanModal, isi: e.target.value})} 
+                />
+              </div>
+              <div>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2 mb-1 block">Tanggal Pelaksanaan</label>
+                <input 
+                  type="date" 
+                  className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-[20px] font-bold text-sm outline-none focus:border-amber-500 focus:bg-white transition-all text-black" 
+                  value={pengumumanModal.tanggal_acara} 
+                  onChange={e => setPengumumanModal({...pengumumanModal, tanggal_acara: e.target.value})} 
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setPengumumanModal({ show: false, id: null, judul: '', isi: '', tanggal_acara: '' })} className="flex-1 py-4 bg-gray-100 hover:bg-gray-200 rounded-2xl font-black text-[10px] uppercase tracking-widest text-gray-500 transition-colors">Batal</button>
+              <button onClick={simpanPengumuman} className="flex-[1.5] py-4 bg-orange-500 hover:bg-orange-600 rounded-2xl font-black text-[10px] uppercase tracking-widest text-white shadow-lg shadow-orange-500/30 transition-colors">Siarkan Info</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 4. MODAL TAMBAH KONTAK */}
       {contactModal.show && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 backdrop-blur-md bg-black/60 animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl border border-gray-100 text-center animate-in zoom-in duration-300">
@@ -231,7 +331,7 @@ export default function AdminPanel() {
                 <input 
                   type="text" 
                   placeholder="Misal: Satpam Blok A" 
-                  className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-[20px] font-bold text-sm outline-none focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-300" 
+                  className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-[20px] font-bold text-sm outline-none focus:border-blue-500 focus:bg-white transition-all text-black" 
                   value={contactModal.nama} 
                   onChange={e => setContactModal({...contactModal, nama: e.target.value})} 
                   autoFocus
@@ -242,7 +342,7 @@ export default function AdminPanel() {
                 <input 
                   type="number" 
                   placeholder="Misal: 628123456789" 
-                  className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-[20px] font-bold text-sm outline-none focus:border-blue-500 focus:bg-white transition-all placeholder:text-gray-300" 
+                  className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-[20px] font-bold text-sm outline-none focus:border-blue-500 focus:bg-white transition-all text-black" 
                   value={contactModal.nomer} 
                   onChange={e => setContactModal({...contactModal, nomer: e.target.value})} 
                 />
@@ -257,7 +357,7 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* 4. MODAL EDIT NOMINAL (PENGGANTI PROMPT) */}
+      {/* 5. MODAL EDIT NOMINAL */}
       {nominalModal.show && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 backdrop-blur-md bg-black/60 animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl border border-gray-100 text-center animate-in zoom-in duration-300">
@@ -320,10 +420,11 @@ export default function AdminPanel() {
         <div className="px-6 md:px-12 mt-8 flex-1">
           
           {/* Tab Navigasi Keren */}
-          <div className="flex bg-gray-50 p-2 rounded-[24px] shadow-inner mb-8 border border-gray-100 w-full md:w-1/2 mx-auto relative z-10">
-             <button onClick={() => setTabActive('iuran')} className={`flex-1 py-3 rounded-[18px] font-black text-[10px] uppercase tracking-widest transition-all ${tabActive === 'iuran' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>Iuran</button>
-             <button onClick={() => setTabActive('kontak')} className={`flex-1 py-3 rounded-[18px] font-black text-[10px] uppercase tracking-widest transition-all ${tabActive === 'kontak' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>Kontak</button>
-             <button onClick={() => setTabActive('warga')} className={`flex-1 py-3 rounded-[18px] font-black text-[10px] uppercase tracking-widest transition-all ${tabActive === 'warga' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>Warga</button>
+          <div className="flex bg-gray-50 p-2 rounded-[24px] shadow-inner mb-8 border border-gray-100 w-full md:w-3/4 mx-auto relative z-10 flex-wrap md:flex-nowrap gap-1">
+             <button onClick={() => setTabActive('iuran')} className={`flex-[1_0_45%] md:flex-1 py-3 rounded-[18px] font-black text-[10px] uppercase tracking-widest transition-all ${tabActive === 'iuran' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>Iuran</button>
+             <button onClick={() => setTabActive('kontak')} className={`flex-[1_0_45%] md:flex-1 py-3 rounded-[18px] font-black text-[10px] uppercase tracking-widest transition-all ${tabActive === 'kontak' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>Kontak</button>
+             <button onClick={() => setTabActive('warga')} className={`flex-[1_0_45%] md:flex-1 py-3 rounded-[18px] font-black text-[10px] uppercase tracking-widest transition-all ${tabActive === 'warga' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>Warga</button>
+             <button onClick={() => setTabActive('pengumuman')} className={`flex-[1_0_45%] md:flex-1 py-3 rounded-[18px] font-black text-[10px] uppercase tracking-widest transition-all ${tabActive === 'pengumuman' ? 'bg-blue-600 text-white shadow-md' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'}`}>Info Acara</button>
           </div>
 
           {/* ISI TAB 1: IURAN */}
@@ -334,7 +435,7 @@ export default function AdminPanel() {
                   <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border-2 border-blue-50 relative overflow-hidden group">
                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full blur-xl group-hover:bg-blue-100 transition-colors"></div>
                       <h2 className="font-black text-[10px] uppercase mb-4 flex items-center gap-2 text-blue-600 tracking-widest relative z-10"><PlusCircle size={16}/> Tagihan Masal</h2>
-                      <input type="text" placeholder="CONTOH: MEI 2026" className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-black text-sm uppercase outline-none focus:border-blue-500 focus:bg-white transition-all mb-4 relative z-10 placeholder:text-gray-300" value={bulanBaru} onChange={e => setBulanBaru(e.target.value)} />
+                      <input type="text" placeholder="CONTOH: MEI 2026" className="w-full p-4 bg-gray-50 border-2 border-gray-100 rounded-2xl font-black text-sm uppercase outline-none focus:border-blue-500 focus:bg-white transition-all mb-4 relative z-10 placeholder:text-gray-300 text-black" value={bulanBaru} onChange={e => setBulanBaru(e.target.value)} />
                       <button onClick={generateTagihanMasal} disabled={isProcessing} className="w-full bg-black hover:bg-gray-900 text-white py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl active:scale-95 transition-all relative z-10 disabled:opacity-50">Generate Tagihan</button>
                   </div>
                   
@@ -353,7 +454,7 @@ export default function AdminPanel() {
                    </h3>
                    <div className="relative md:w-64">
                      <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                     <input type="text" placeholder="Cari nama warga..." className="w-full bg-gray-50 pl-10 pr-4 py-3 rounded-xl border-2 border-gray-100 text-xs font-bold outline-none focus:border-blue-500 transition-colors" onChange={e => setSearchTerm(e.target.value)} />
+                     <input type="text" placeholder="Cari nama warga..." className="w-full bg-gray-50 pl-10 pr-4 py-3 rounded-xl border-2 border-gray-100 text-xs font-bold outline-none focus:border-blue-500 text-black transition-colors" onChange={e => setSearchTerm(e.target.value)} />
                    </div>
                 </div>
 
@@ -444,6 +545,55 @@ export default function AdminPanel() {
                    </div>
                  ))}
                </div>
+             </div>
+          )}
+
+          {/* ISI TAB BARU 4: PENGUMUMAN Warga */}
+          {tabActive === 'pengumuman' && (
+             <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mx-auto">
+               
+               <div className="flex flex-col md:flex-row gap-5 items-stretch md:items-center justify-between bg-amber-50 p-6 md:p-8 rounded-[32px] border border-amber-200 shadow-inner">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white text-orange-500 rounded-[20px] flex items-center justify-center shadow-sm shrink-0 rotate-3">
+                      <Megaphone size={20}/>
+                    </div>
+                    <div>
+                      <h3 className="font-black text-sm uppercase text-amber-900 mb-1">Siaran Info Warga</h3>
+                      <p className="text-[10px] font-bold text-amber-700/80 uppercase tracking-wider">Buat agenda kegiatan atau informasi penting yang akan muncul di Dashboard seluruh warga.</p>
+                    </div>
+                  </div>
+                  <button 
+                    onClick={() => setPengumumanModal({ show: true, id: null, judul: '', isi: '', tanggal_acara: '' })} 
+                    className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-orange-500/30 flex items-center justify-center gap-2 active:scale-95 transition-all shrink-0"
+                  >
+                    <Plus size={16}/> Buat Baru
+                  </button>
+               </div>
+
+               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                 {dataPengumuman.length > 0 ? dataPengumuman.map(p => (
+                    <div key={p.id} className="bg-white p-6 rounded-[28px] shadow-sm border-2 border-gray-50 flex flex-col justify-between hover:border-orange-100 transition-colors group relative overflow-hidden">
+                      <div className="mb-4">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="px-3 py-1 bg-amber-100 text-orange-700 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                            {new Date(p.tanggal_acara).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </span>
+                          <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <button onClick={() => setPengumumanModal({ show: true, id: p.id, judul: p.judul, isi: p.isi, tanggal_acara: p.tanggal_acara })} className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"><Edit3 size={14}/></button>
+                            <button onClick={() => hapusPengumuman(p.id)} className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"><Trash2 size={14}/></button>
+                          </div>
+                        </div>
+                        <h4 className="font-black text-base uppercase text-black leading-tight mb-2">{p.judul}</h4>
+                        <p className="text-[11px] font-bold text-gray-500 leading-relaxed line-clamp-3">{p.isi}</p>
+                      </div>
+                    </div>
+                 )) : (
+                   <div className="col-span-1 md:col-span-2 text-center py-20 bg-gray-50 rounded-[32px] border-2 border-dashed border-gray-200">
+                      <p className="font-black text-[10px] text-gray-400 uppercase tracking-widest">Belum ada pengumuman yang disiarkan</p>
+                   </div>
+                 )}
+               </div>
+
              </div>
           )}
 
