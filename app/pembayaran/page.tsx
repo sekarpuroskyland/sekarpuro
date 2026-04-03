@@ -54,7 +54,7 @@ export default function Pembayaran() {
 
     const pesan = `Halo Admin Skyland!%0A%0ASaya ingin mengirimkan bukti transfer pembayaran iuran:%0A--------------------%0ANama: *${profilWarga.nama_lengkap}*%0ABlok: *${profilWarga.blok_rumah}*%0A${infoTagihan}%0A--------------------%0ABerikut saya lampirkan foto struknya. Terima kasih! 🙏`
     
-    window.open(`https://wa.me/${phoneAdmin}?text=${pesan}`, '_blank')
+    window.open(`https://wa.me/${6281233429997}?text=${pesan}`, '_blank')
     triggerAlert("Membuka WhatsApp Admin...")
   }
 

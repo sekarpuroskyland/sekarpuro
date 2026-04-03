@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
 import { 
-  Search, RefreshCcw, PlusCircle, LogOut, Phone, Trash2, Edit3, Check, AlertTriangle, Plus, ShieldCheck, UserPlus, Megaphone
+  Search, RefreshCcw, PlusCircle, LogOut, Phone, Trash2, Edit3, Check, AlertTriangle, Plus, ShieldCheck, UserPlus, Megaphone, TrendingUp, CheckCircle2, UserX, ChevronDown
 } from 'lucide-react'
 
 export default function AdminPanel() {
@@ -21,6 +21,10 @@ export default function AdminPanel() {
   const [bulanHapus, setBulanHapus] = useState('')
   const [isProcessing, setIsProcessing] = useState(false)
   const [tabActive, setTabActive] = useState('iuran')
+
+  // STATE UNTUK FILTER REKAPAN PER BULAN
+  const [filterBulan, setFilterBulan] = useState<string>('')
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false) // STATE BARU BUAT CUSTOM DROPDOWN
 
   // MODERN NOTIFICATION & MODAL STATES
   const [toast, setToast] = useState({ show: false, msg: '', type: 'success' })
@@ -61,6 +65,21 @@ export default function AdminPanel() {
     setDataKontak(kontak.data || [])
     setDataPengumuman(pengumuman.data || [])
   }
+
+  // LOGIKA REKAPAN KEUANGAN PER BULAN
+  const listBulanUnik = Array.from(new Set(dataTagihan.map(t => t.bulan)))
+  
+  useEffect(() => {
+    // Set default filter ke bulan pertama yang ada di database kalau belum milih
+    if (listBulanUnik.length > 0 && !filterBulan) {
+      setFilterBulan(listBulanUnik[0])
+    }
+  }, [listBulanUnik, filterBulan])
+
+  const tagihanBulanIni = dataTagihan.filter(t => t.bulan === filterBulan)
+  const totalUangMasuk = tagihanBulanIni.filter(t => t.status === 'lunas').reduce((sum, t) => sum + t.nominal, 0)
+  const wargaLunas = tagihanBulanIni.filter(t => t.status === 'lunas').length
+  const wargaBelumLunas = tagihanBulanIni.filter(t => t.status !== 'lunas').length
 
   const triggerToast = (msg: string, type = 'success') => {
     setToast({ show: true, msg, type })
@@ -236,7 +255,7 @@ export default function AdminPanel() {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8">
       
-      {/* 1. CUSTOM TOAST ALERT (Z-INDEX NAIK JADI 9999 BIAR NEMBUS MODAL) */}
+      {/* 1. CUSTOM TOAST ALERT */}
       {toast.show && (
         <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[9999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500 w-max">
           <div className={`${toast.type === 'success' ? 'bg-black' : 'bg-red-600'} text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-4 border border-white/10 backdrop-blur-md`}>
@@ -248,7 +267,7 @@ export default function AdminPanel() {
         </div>
       )}
 
-      {/* 2. CUSTOM CONFIRM MODAL (DELETE) */}
+      {/* 2. CUSTOM CONFIRM MODAL */}
       {confirmModal.show && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center p-6 backdrop-blur-md bg-black/60 animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-sm rounded-[40px] p-8 shadow-2xl border border-gray-100 text-center animate-in zoom-in duration-300">
@@ -431,6 +450,73 @@ export default function AdminPanel() {
           {tabActive === 'iuran' && (
             <div className="space-y-8 animate-in fade-in duration-500">
               
+              {/* REKAPAN KEUANGAN PER BULAN DENGAN CUSTOM DROPDOWN MODERN */}
+              <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 mb-8">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest">Rekap Keuangan</h3>
+                  </div>
+                  
+                  {/* CUSTOM DROPDOWN DI SINI */}
+                  <div className="relative">
+                    <button 
+                      onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                      className="flex items-center justify-between gap-3 bg-gray-50 border-2 border-gray-100 text-black text-xs font-black uppercase tracking-widest rounded-xl px-5 py-3 outline-none hover:border-blue-300 focus:border-blue-500 transition-all cursor-pointer min-w-[180px]"
+                    >
+                      {filterBulan || "PILIH BULAN"}
+                      <ChevronDown size={16} className={`text-gray-400 transition-transform duration-300 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+                    </button>
+
+                    {isDropdownOpen && (
+                      <div className="absolute top-full right-0 mt-2 w-full min-w-[180px] bg-white border border-gray-100 rounded-2xl shadow-xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2">
+                        {listBulanUnik.length > 0 ? (
+                          listBulanUnik.map((bln, idx) => (
+                            <button 
+                              key={idx}
+                              onClick={() => { setFilterBulan(bln); setIsDropdownOpen(false); }}
+                              className={`w-full text-left px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-colors border-b border-gray-50 last:border-b-0 ${filterBulan === bln ? 'bg-blue-50 text-blue-600' : 'text-gray-600 hover:bg-gray-50 hover:text-black'}`}
+                            >
+                              {bln}
+                            </button>
+                          ))
+                        ) : (
+                          <div className="px-5 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400">Belum ada data</div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  {/* END CUSTOM DROPDOWN */}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Uang Masuk */}
+                  <div className="p-5 bg-emerald-50 rounded-[24px] border border-emerald-100 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white text-emerald-500 rounded-xl flex items-center justify-center shrink-0 shadow-sm"><TrendingUp size={20}/></div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-emerald-600/70 mb-1">Total Uang Masuk</p>
+                      <h4 className="text-lg font-black text-emerald-700 tracking-tighter"><span className="text-xs mr-1">Rp</span>{totalUangMasuk.toLocaleString('id-ID')}</h4>
+                    </div>
+                  </div>
+                  {/* Lunas */}
+                  <div className="p-5 bg-blue-50 rounded-[24px] border border-blue-100 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white text-blue-500 rounded-xl flex items-center justify-center shrink-0 shadow-sm"><CheckCircle2 size={20}/></div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-blue-600/70 mb-1">Sudah Bayar</p>
+                      <h4 className="text-lg font-black text-blue-700 tracking-tighter">{wargaLunas} <span className="text-xs ml-1 uppercase">Orang</span></h4>
+                    </div>
+                  </div>
+                  {/* Belum Lunas */}
+                  <div className="p-5 bg-red-50 rounded-[24px] border border-red-100 flex items-center gap-4">
+                    <div className="w-12 h-12 bg-white text-red-500 rounded-xl flex items-center justify-center shrink-0 shadow-sm"><UserX size={20}/></div>
+                    <div>
+                      <p className="text-[9px] font-black uppercase tracking-widest text-red-600/70 mb-1">Belum Bayar</p>
+                      <h4 className="text-lg font-black text-red-700 tracking-tighter">{wargaBelumLunas} <span className="text-xs ml-1 uppercase">Orang</span></h4>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="bg-white p-6 md:p-8 rounded-[32px] shadow-sm border-2 border-blue-50 relative overflow-hidden group">
                       <div className="absolute -right-4 -top-4 w-24 h-24 bg-blue-50 rounded-full blur-xl group-hover:bg-blue-100 transition-colors"></div>
@@ -548,7 +634,7 @@ export default function AdminPanel() {
              </div>
           )}
 
-          {/* ISI TAB BARU 4: PENGUMUMAN Warga */}
+          {/* ISI TAB 4: PENGUMUMAN Warga */}
           {tabActive === 'pengumuman' && (
              <div className="space-y-6 animate-in fade-in duration-500 max-w-4xl mx-auto">
                

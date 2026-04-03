@@ -103,7 +103,7 @@ export default function PanduanAplikasi() {
               <h4 className="font-black text-sm md:text-lg text-black uppercase">Hubungi Admin IT</h4>
             </div>
             <button 
-              onClick={() => window.open(`https://wa.me/628123456789?text=Halo%20Admin,%20saya%20butuh%20bantuan%20cara%20pakai%20Skyland%20Portal`, '_blank')}
+              onClick={() => window.open(`https://wa.me/6281233429997?text=Halo%20Admin,%20saya%20butuh%20bantuan%20cara%20pakai%20Skyland%20Portal`, '_blank')}
               className="w-full md:w-auto px-8 py-4 bg-black hover:bg-gray-800 text-white rounded-2xl md:rounded-[20px] font-black text-[10px] md:text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <MessageCircle size={16} /> Chat Sekarang
