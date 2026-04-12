@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowLeft, Wallet, CreditCard, Check, ChevronRight, Copy, Info } from 'lucide-react'
 
 export default function Pembayaran() {
@@ -29,7 +30,7 @@ export default function Pembayaran() {
           .eq('status', 'belum lunas')
           .order('created_at', { ascending: false })
           .limit(1)
-          .single()
+          .maybeSingle()
         
         if (tagihan) setTagihanTerbaru(tagihan)
       }
@@ -46,29 +47,29 @@ export default function Pembayaran() {
 
   const handleKonfirmasiWA = () => {
     if (!profilWarga) return
-    const phoneAdmin = "628123456789" // GANTI NOMOR WA ADMIN
+    const phoneAdmin = "6281233429997" // SUDAH UPDATE NOMOR CLIENT
     
     const infoTagihan = tagihanTerbaru 
       ? `Bulan: *${tagihanTerbaru.bulan}*%0ANominal: *Rp ${tagihanTerbaru.nominal.toLocaleString('id-ID')}*` 
       : `Bulan: *(Sebutkan Bulan)*%0ANominal: *(Sebutkan Nominal)*`
 
-    const pesan = `Halo Admin Skyland!%0A%0ASaya ingin mengirimkan bukti transfer pembayaran iuran:%0A--------------------%0ANama: *${profilWarga.nama_lengkap}*%0ABlok: *${profilWarga.blok_rumah}*%0A${infoTagihan}%0A--------------------%0ABerikut saya lampirkan foto struknya. Terima kasih! 🙏`
+    const pesan = `Halo Admin Skyvia!%0A%0ASaya ingin mengirimkan bukti transfer pembayaran iuran:%0A--------------------%0ANama: *${profilWarga.nama_lengkap}*%0ABlok: *${profilWarga.blok_rumah}*%0A${infoTagihan}%0A--------------------%0ABerikut saya lampirkan foto struknya. Terima kasih! 🙏`
     
-    window.open(`https://wa.me/${6281233429997}?text=${pesan}`, '_blank')
+    window.open(`https://wa.me/${phoneAdmin}?text=${pesan}`, '_blank')
     triggerAlert("Membuka WhatsApp Admin...")
   }
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text)
-    triggerAlert("Nomor Rekening Mandiri Disalin!")
+    triggerAlert("Nomor Rekening Berhasil Disalin!")
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8">
+    <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8 overflow-x-hidden">
       
       {/* TOAST MODERN */}
       {showToast && (
-        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500">
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500 w-max">
           <div className="bg-black/90 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-4 border border-white/10 backdrop-blur-md">
             <div className="bg-green-500 p-2 rounded-full shadow-[0_0_15px_rgba(34,197,94,0.5)]"><Check className="text-white w-4 h-4" strokeWidth={4} /></div>
             <p className="font-black text-[10px] uppercase tracking-[0.2em]">{toastMsg}</p>
@@ -76,14 +77,15 @@ export default function Pembayaran() {
         </div>
       )}
 
-      {/* Container utama: Edge-to-Edge di HP, Lebar di Desktop */}
-      <div className="w-full md:max-w-4xl bg-white md:border border-gray-100 min-h-screen md:min-h-fit md:rounded-[40px] relative pb-10 md:pb-0 md:shadow-2xl overflow-hidden flex flex-col">
+      {/* Container utama */}
+      <div className="w-full md:max-w-5xl bg-white md:border border-gray-100 min-h-screen md:min-h-fit md:rounded-[40px] relative pb-10 md:pb-0 md:shadow-2xl overflow-hidden flex flex-col">
         
-        {/* Header Mewah */}
-        <div className="relative px-6 md:px-12 pt-12 pb-8 bg-gradient-to-br from-amber-500 to-orange-600 md:rounded-b-[40px] shadow-lg overflow-hidden">
+        {/* Header Mewah Skyvia */}
+        <div className="relative px-6 md:px-12 pt-12 pb-8 bg-gradient-to-br from-amber-500 to-orange-600 md:rounded-b-[40px] shadow-lg overflow-hidden flex justify-between items-center">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
+          
           <div className="relative flex items-center gap-4 z-10 text-white">
-            <button onClick={() => router.back()} className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl active:scale-90 transition-all border border-white/20 hover:bg-white/30">
+            <button onClick={() => router.back()} className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl active:scale-90 transition-all border border-white/20 hover:bg-white/30 shadow-sm">
               <ArrowLeft size={20} />
             </button>
             <div>
@@ -91,12 +93,23 @@ export default function Pembayaran() {
               <p className="text-[9px] md:text-[10px] text-orange-100 font-black uppercase tracking-[0.2em] mt-1 md:mt-2">Transfer & Konfirmasi</p>
             </div>
           </div>
+
+          {/* LOGO SKYVIA KANAN - TEGAK LURUS */}
+          <div className="relative z-20 w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl overflow-hidden p-2 group transition-transform hover:scale-105">
+             <Image 
+               src="/images/skyvia.png" 
+               alt="Skyvia Logo" 
+               width={48} 
+               height={48} 
+               className="object-contain"
+             />
+          </div>
         </div>
 
-        {/* Content Area dibelah dua kalau di Desktop */}
+        {/* Content Area */}
         <div className="flex flex-col md:flex-row gap-8 px-6 md:px-12 mt-8 md:mt-12 md:pb-12 flex-1">
           
-          {/* Kolom Kiri: Info Tagihan & Tombol */}
+          {/* Kolom Kiri: Info Tagihan */}
           <div className="flex-1 flex flex-col justify-center">
             <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span> Ringkasan Tagihan
@@ -116,7 +129,7 @@ export default function Pembayaran() {
                    Untuk Bulan: <span className="text-orange-600">{tagihanTerbaru ? tagihanTerbaru.bulan : '-'}</span>
                  </p>
                </div>
-               <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-[20px] flex items-center justify-center shadow-md text-orange-500 rotate-3">
+               <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-[20px] flex items-center justify-center shadow-md text-orange-500">
                  <Wallet className="w-6 h-6 md:w-8 md:h-8" />
                </div>
             </div>
@@ -127,10 +140,6 @@ export default function Pembayaran() {
                  Pastikan nominal transfer sesuai dengan tagihan.<br/>Simpan bukti transfer untuk dikirim ke Admin.
                </p>
             </div>
-
-            <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-               <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span> Langkah Terakhir
-            </h3>
 
             <button 
               onClick={handleKonfirmasiWA} 
@@ -149,10 +158,10 @@ export default function Pembayaran() {
             </button>
           </div>
 
-          {/* Kolom Kanan: Kartu ATM Virtual */}
+          {/* Kolom Kanan: Kartu Rekening Virtual */}
           <div className="w-full md:w-[400px] mt-2 md:mt-0 flex flex-col justify-center">
             <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-               <span className="w-2 h-2 rounded-full bg-blue-600"></span> Rekening Tujuan
+               <span className="w-2 h-2 rounded-full bg-blue-600"></span> Rekening Tujuan Skyvia
             </h3>
 
             <div className="relative p-8 md:p-10 rounded-[35px] bg-gradient-to-br from-[#0B1E59] to-[#1A3673] text-white shadow-2xl shadow-blue-900/30 overflow-hidden transform transition-transform hover:scale-[1.02] duration-300">
@@ -179,12 +188,11 @@ export default function Pembayaran() {
               <div className="relative z-10 flex items-end justify-between">
                 <div>
                   <p className="text-[9px] md:text-[10px] font-black uppercase tracking-[0.3em] text-blue-200/80 mb-1">Atas Nama</p>
-                  <h4 className="text-xs md:text-sm font-black uppercase tracking-widest text-white drop-shadow-sm">PENGURUS RT SKYLAND</h4>
+                  <h4 className="text-xs md:text-sm font-black uppercase tracking-widest text-white drop-shadow-sm">PENGURUS RT SKYVIA</h4>
                 </div>
                 <button 
                   onClick={() => copyToClipboard("1440012345678")} 
                   className="px-5 py-3 bg-white/10 hover:bg-white/20 rounded-2xl backdrop-blur-md border border-white/10 transition-all active:scale-95 flex items-center gap-2 shadow-lg"
-                  title="Salin Nomor Rekening"
                 >
                   <Copy size={16} className="text-white" />
                   <span className="text-[10px] font-black uppercase tracking-widest">Salin</span>

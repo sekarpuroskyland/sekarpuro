@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowLeft, Send, MessageSquare, AlertTriangle, Check, ChevronDown } from 'lucide-react'
 
 export default function Pengaduan() {
@@ -55,8 +56,8 @@ export default function Pengaduan() {
     e.preventDefault()
     if (!laporan.trim()) return triggerToast("Laporan tidak boleh kosong!")
 
-    const nomerAdmin = "628123456789" // GANTI NOMER WA ADMIN
-    const pesan = `*LAPORAN PENGADUAN WARGA*%0A---------------------------%0A*Nama:* ${nama}%0A*Blok:* ${blok}%0A*Kategori:* ${kategori}%0A*Laporan:* ${laporan}%0A---------------------------%0AMohon segera ditindaklanjuti. Terima kasih.`
+    const nomerAdmin = "6281233429997" // SUDAH UPDATE NOMOR CLIENT
+    const pesan = `*LAPORAN PENGADUAN WARGA SKYVIA*%0A---------------------------%0A*Nama:* ${nama}%0A*Blok:* ${blok}%0A*Kategori:* ${kategori}%0A*Laporan:* ${laporan}%0A---------------------------%0AMohon segera ditindaklanjuti. Terima kasih.`
     
     window.open(`https://wa.me/${nomerAdmin}?text=${pesan}`, '_blank')
     triggerToast("Membuka WhatsApp Admin...")
@@ -64,11 +65,11 @@ export default function Pengaduan() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8">
+    <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8 overflow-x-hidden">
       
       {/* TOAST MODERN */}
       {showToast && (
-        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500">
+        <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500 w-max">
           <div className="bg-black/90 text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-4 border border-white/10 backdrop-blur-md">
             <div className="bg-indigo-500 p-2 rounded-full shadow-[0_0_15px_rgba(99,102,241,0.5)]"><Check className="text-white w-4 h-4" strokeWidth={4} /></div>
             <p className="font-black text-[10px] uppercase tracking-[0.2em]">{toastMsg}</p>
@@ -79,16 +80,13 @@ export default function Pengaduan() {
       {/* Container */}
       <div className="w-full md:max-w-5xl bg-white md:border border-gray-100 min-h-screen md:min-h-fit md:rounded-[40px] relative pb-10 md:pb-0 md:shadow-2xl overflow-hidden flex flex-col">
         
-        {/* Header Mewah Tema Indigo/Purple */}
-        <div className="relative px-6 md:px-12 pt-12 pb-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-900 md:rounded-b-[40px] shadow-lg overflow-hidden">
+        {/* Header Mewah Skyvia */}
+        <div className="relative px-6 md:px-12 pt-12 pb-8 bg-gradient-to-br from-indigo-600 via-purple-600 to-indigo-900 md:rounded-b-[40px] shadow-lg overflow-hidden flex justify-between items-center">
           
-          {/* PERBAIKAN: Tambah pointer-events-none biar ga nutupin tombol back */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-indigo-400/20 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
 
           <div className="relative flex items-center gap-4 z-20 text-white">
-            
-            {/* PERBAIKAN: Ganti router.back() jadi router.push() & z-index diangkat */}
             <button 
               onClick={() => router.push('/dashboard')} 
               className="relative z-50 p-3 bg-white/10 backdrop-blur-sm rounded-2xl active:scale-90 transition-all border border-white/20 hover:bg-white/20 shadow-sm cursor-pointer"
@@ -101,6 +99,17 @@ export default function Pengaduan() {
               <p className="text-[9px] md:text-[10px] text-indigo-200 font-black uppercase tracking-[0.3em] mt-1 md:mt-2">Layanan Bantuan Warga</p>
             </div>
           </div>
+
+          {/* LOGO SKYVIA KANAN - TEGAK LURUS */}
+          <div className="relative z-20 w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl p-2 group transition-transform hover:scale-105">
+             <Image 
+               src="/images/skyvia.png" 
+               alt="Skyvia Logo" 
+               width={48} 
+               height={48} 
+               className="object-contain"
+             />
+          </div>
         </div>
 
         {/* Content Area */}
@@ -109,7 +118,7 @@ export default function Pengaduan() {
           {/* Kolom Kiri: Form Pengaduan */}
           <div className="flex-1">
             <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-               <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> Form Laporan
+               <span className="w-2 h-2 rounded-full bg-indigo-500 animate-pulse"></span> Form Laporan Skyvia
             </h3>
 
             {loading ? (
@@ -195,7 +204,7 @@ export default function Pengaduan() {
           <div className="w-full md:w-[350px] mt-6 md:mt-0 flex flex-col justify-center gap-4">
             
             <div className="bg-indigo-50 border border-indigo-100 p-6 rounded-[32px] flex items-start gap-4 shadow-inner">
-               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-indigo-600 shrink-0 rotate-3">
+               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-indigo-600 shrink-0">
                  <MessageSquare size={20} />
                </div>
                <div>
@@ -213,14 +222,8 @@ export default function Pengaduan() {
                <div>
                  <h4 className="font-black text-xs uppercase text-gray-600 mb-1">Kondisi Darurat?</h4>
                  <p className="text-[10px] font-bold text-gray-400 leading-relaxed uppercase tracking-wider">
-                   Jika terjadi kondisi gawat darurat (kebakaran/maling), segera gunakan menu <span className="text-black">Kontak Darurat</span>.
+                   Jika terjadi kondisi gawat darurat (kebakaran/maling), segera gunakan menu <span className="text-black font-black underline cursor-pointer" onClick={() => router.push('/kontak-darurat')}>Kontak Darurat</span>.
                  </p>
-                 <button 
-                  onClick={() => router.push('/kontak-darurat')} 
-                  className="mt-3 text-[10px] font-black text-indigo-600 uppercase tracking-widest flex items-center gap-1 hover:underline"
-                 >
-                   Buka Kontak <ArrowLeft size={12} className="rotate-180"/>
-                 </button>
                </div>
             </div>
 

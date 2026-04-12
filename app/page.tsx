@@ -1,8 +1,9 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { supabase } from '../utils/supabase'
 import { useRouter } from 'next/navigation'
-import { Mail, Lock, ArrowRight, Loader2, UserPlus, KeyRound, Check, AlertTriangle } from 'lucide-react'
+import Image from 'next/image'
+import { Mail, Lock, ArrowRight, Loader2, UserPlus, KeyRound, Check, AlertTriangle, LogIn, ChevronRight } from 'lucide-react'
 
 export default function Login() {
   const router = useRouter()
@@ -15,6 +16,21 @@ export default function Login() {
   const [showResetModal, setShowResetModal] = useState(false)
   const [resetEmail, setResetEmail] = useState('')
   const [isResetting, setIsResetting] = useState(false)
+
+  // CEK SESSION SAAT COMPONENT MOUNT
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        if (session.user.email === 'admin@sekar.com') {
+          router.push('/admin')
+        } else {
+          router.push('/dashboard')
+        }
+      }
+    }
+    checkSession()
+  }, [router])
 
   const triggerToast = (msg: string, type = 'success') => {
     setToast({ show: true, msg, type })
@@ -31,11 +47,13 @@ export default function Login() {
       
       if (data.user) {
         triggerToast('Login Berhasil!', 'success')
-        if (data.user.email === 'admin@sekar.com') {
-          router.push('/admin') 
-        } else {
-          router.push('/dashboard') 
-        }
+        setTimeout(() => {
+          if (data.user?.email === 'admin@sekar.com') {
+            router.push('/admin') 
+          } else {
+            router.push('/dashboard') 
+          }
+        }, 500)
       }
     } catch (err: any) {
       triggerToast(err.message === 'Invalid login credentials' ? 'Email atau Password salah!' : err.message, 'error')
@@ -44,15 +62,14 @@ export default function Login() {
     }
   }
 
-  // LOGIKA RESET PASSWORD SUPABASE
+  // LOGIKA RESET PASSWORD
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!resetEmail) return triggerToast('Masukkan email dulu bos!', 'error')
     setIsResetting(true)
 
-    // Supabase ngirim email reset otomatis
     const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-      redirectTo: `${window.location.origin}/update-password`, // Diarahkan ke halaman bikin password baru nanti
+      redirectTo: `${window.location.origin}/update-password`,
     })
 
     if (error) {
@@ -66,9 +83,9 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center items-center font-sans p-6 text-black relative">
+    <div className="min-h-screen bg-gray-50 flex justify-center items-center font-sans p-6 text-black relative overflow-x-hidden">
       
-      {/* TOAST MODERN (Pengganti Alert Merah Jadul) */}
+      {/* TOAST MODERN */}
       {toast.show && (
         <div className="fixed top-10 left-1/2 -translate-x-1/2 z-[999] animate-in fade-in zoom-in slide-in-from-top-10 duration-500 w-max">
           <div className={`${toast.type === 'success' ? 'bg-black' : 'bg-red-600'} text-white px-8 py-4 rounded-full shadow-2xl flex items-center gap-4 border border-white/10 backdrop-blur-md`}>
@@ -89,7 +106,7 @@ export default function Login() {
             </div>
             <h3 className="font-black text-lg uppercase mb-2 text-black">Reset Password</h3>
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-6 leading-relaxed">
-              Masukkan email akun Anda. Kami akan mengirimkan link untuk membuat password baru.
+              Masukkan email akun Skyvia Anda. Kami akan mengirimkan link untuk membuat password baru.
             </p>
             
             <form onSubmit={handleResetPassword} className="text-left mb-8">
@@ -102,7 +119,6 @@ export default function Login() {
                   value={resetEmail} 
                   onChange={e => setResetEmail(e.target.value)} 
                   required
-                  autoFocus
                 />
               </div>
               <div className="flex gap-3">
@@ -120,16 +136,23 @@ export default function Login() {
       <div className="w-full max-w-md bg-white rounded-[40px] shadow-2xl p-10 border border-gray-100 relative z-10">
         
         <div className="mb-10 text-center">
-          <div className="w-16 h-16 bg-blue-600 rounded-[20px] mx-auto mb-4 flex items-center justify-center shadow-lg shadow-blue-600/30 rotate-3">
-             <span className="text-white font-black text-2xl">S</span>
+          {/* LOGO SKYVIA - TEGAK LURUS SESUAI TITAH KING */}
+          <div className="w-24 h-24 bg-white border border-gray-100 rounded-[28px] mx-auto mb-6 flex items-center justify-center shadow-lg p-3 transition-transform hover:scale-105 duration-300">
+             <Image 
+               src="/images/skyvia.png" 
+               alt="Skyvia Logo" 
+               width={80} 
+               height={80} 
+               className="object-contain"
+             />
           </div>
-          <h1 className="text-3xl font-black tracking-tighter uppercase leading-none text-black">Skyland Digital</h1>
-          <p className="text-gray-400 text-[10px] font-black mt-2 uppercase tracking-[0.3em]">Resident Portal</p>
+          <h1 className="text-3xl font-black tracking-tighter uppercase leading-none text-black">Skyvia Digital</h1>
+          <p className="text-gray-400 text-[10px] font-black mt-3 uppercase tracking-[0.3em]">Resident Portal</p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-5">
-          <div className="relative">
-            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
+          <div className="relative group">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
             <input 
               type="email" 
               placeholder="Email Warga" 
@@ -140,8 +163,8 @@ export default function Login() {
             />
           </div>
 
-          <div className="relative">
-            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5" />
+          <div className="relative group">
+            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 w-5 h-5 group-focus-within:text-blue-500 transition-colors" />
             <input 
               type="password" 
               placeholder="Password" 
@@ -150,7 +173,6 @@ export default function Login() {
               value={password} 
               onChange={(e) => setPassword(e.target.value)} 
             />
-            {/* TOMBOL LUPA PASSWORD */}
             <div className="text-right mt-2 mr-2">
               <button 
                 type="button" 
@@ -165,10 +187,10 @@ export default function Login() {
           <button 
             type="submit" 
             disabled={loading} 
-            className="w-full relative overflow-hidden group bg-black text-white py-4 rounded-[24px] font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all disabled:bg-gray-400 disabled:scale-100 mt-2"
+            className="w-full relative overflow-hidden group bg-black text-white py-5 rounded-[24px] font-black text-[10px] uppercase tracking-widest shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all disabled:bg-gray-400 mt-2"
           >
             <span className="relative z-10 flex items-center justify-center gap-2">
-              {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <>Masuk Sekarang <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></>}
+              {loading ? <Loader2 className="animate-spin w-5 h-5" /> : <><LogIn size={18} /><span>Masuk Sekarang</span><ChevronRight size={18}/></>}
             </span>
             <span className="absolute inset-0 bg-gradient-to-r from-blue-600 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
           </button>
@@ -179,7 +201,6 @@ export default function Login() {
           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-[10px] font-black text-gray-300 uppercase tracking-widest">Atau</span>
         </div>
 
-        {/* TOMBOL KE REGISTER */}
         <button 
           onClick={() => router.push('/register')}
           className="w-full border-2 border-gray-100 text-gray-500 py-4 rounded-[24px] font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:border-blue-600 hover:text-blue-600 hover:bg-blue-50"

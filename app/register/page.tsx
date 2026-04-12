@@ -2,7 +2,8 @@
 import { useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
-import { User, Mail, Lock, Home, Phone, ArrowRight, Loader2, LogIn, Check, AlertTriangle, UserPlus } from 'lucide-react'
+import Image from 'next/image'
+import { User, Mail, Lock, Home, Phone, ArrowRight, Loader2, LogIn, Check, AlertTriangle } from 'lucide-react'
 
 export default function Register() {
   const router = useRouter()
@@ -55,7 +56,7 @@ export default function Register() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8">
+    <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8 overflow-x-hidden">
       
       {/* TOAST MODERN */}
       {toast.show && (
@@ -69,15 +70,22 @@ export default function Register() {
         </div>
       )}
 
-      {/* KOTAK REGISTER UTAMA (Edge-to-Edge di HP, Kotak di Desktop) */}
+      {/* KOTAK REGISTER UTAMA */}
       <div className="w-full max-w-md bg-white md:rounded-[40px] shadow-2xl p-8 md:p-10 border-x md:border border-gray-100 min-h-screen md:min-h-fit relative z-10 animate-in fade-in duration-500">
         
         <div className="mb-10 text-center pt-4 md:pt-0">
-          <div className="w-16 h-16 bg-blue-600 rounded-[20px] mx-auto mb-4 flex items-center justify-center shadow-lg shadow-blue-600/30 rotate-3">
-             <UserPlus className="text-white w-8 h-8" />
+          {/* LOGO SKYVIA - TEGAK LURUS SESUAI PERINTAH KING */}
+          <div className="w-20 h-20 bg-white border border-gray-100 rounded-[24px] mx-auto mb-6 flex items-center justify-center shadow-lg p-2 transition-transform hover:scale-105">
+             <Image 
+               src="/images/skyvia.png" 
+               alt="Skyvia Logo" 
+               width={64} 
+               height={64} 
+               className="object-contain"
+             />
           </div>
           <h1 className="text-3xl font-black tracking-tighter uppercase leading-none text-black">Gabung Warga</h1>
-          <p className="text-gray-400 text-[10px] font-black mt-3 uppercase tracking-[0.3em]">Portal Skyland Digital</p>
+          <p className="text-gray-400 text-[10px] font-black mt-3 uppercase tracking-[0.3em]">Portal Skyvia Digital</p>
         </div>
 
         <form onSubmit={handleRegister} className="space-y-4">
@@ -159,7 +167,6 @@ export default function Register() {
           <span className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-4 text-[10px] font-black text-gray-300 uppercase tracking-widest">Atau</span>
         </div>
 
-        {/* TOMBOL KE LOGIN */}
         <button 
           type="button"
           onClick={() => router.push('/')}

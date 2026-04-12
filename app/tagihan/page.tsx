@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowLeft, Receipt, AlertCircle, CheckCircle2, ChevronRight, CalendarDays, Wallet } from 'lucide-react'
 
 export default function Tagihan() {
@@ -45,29 +46,40 @@ export default function Tagihan() {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8">
       
-      {/* Container: Edge-to-Edge di HP, Kotak Lebar di Desktop */}
-      <div className="w-full md:max-w-4xl bg-white md:border border-gray-100 min-h-screen md:min-h-fit md:rounded-[40px] relative pb-10 md:pb-12 md:shadow-2xl overflow-hidden flex flex-col">
+      {/* Container Utama */}
+      <div className="w-full md:max-w-5xl bg-white md:border border-gray-100 min-h-screen md:min-h-fit md:rounded-[40px] relative pb-10 md:pb-12 md:shadow-2xl overflow-hidden flex flex-col">
         
-        {/* Header Mewah Tema Netral (Slate/Dark Gray) */}
-        <div className="relative px-6 md:px-12 pt-12 pb-8 bg-gradient-to-br from-slate-700 via-slate-800 to-black md:rounded-b-[40px] shadow-lg overflow-hidden">
+        {/* Header Mewah Tema Skyvia (Slate/Dark Gray) */}
+        <div className="relative px-6 md:px-12 pt-12 pb-8 bg-gradient-to-br from-slate-700 via-slate-800 to-black md:rounded-b-[40px] shadow-lg overflow-hidden flex justify-between items-center">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3"></div>
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-slate-400/20 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4"></div>
 
-          <div className="relative flex items-center gap-4 z-10 text-white">
-            <button onClick={() => router.back()} className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl active:scale-90 transition-all border border-white/20 hover:bg-white/20 shadow-sm">
+          <div className="relative flex items-center gap-4 z-20 text-white">
+            <button onClick={() => router.push('/dashboard')} className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl active:scale-90 transition-all border border-white/20 hover:bg-white/20 shadow-sm cursor-pointer">
               <ArrowLeft size={20} />
             </button>
             <div>
               <h1 className="text-xl md:text-3xl font-black uppercase italic leading-none drop-shadow-md">Tagihan Anda</h1>
-              <p className="text-[9px] md:text-[10px] text-slate-300 font-black uppercase tracking-[0.3em] mt-1 md:mt-2">Riwayat Iuran Skyland</p>
+              <p className="text-[9px] md:text-[10px] text-slate-300 font-black uppercase tracking-[0.3em] mt-1 md:mt-2">Riwayat Iuran Skyvia</p>
             </div>
+          </div>
+
+          {/* LOGO SKYVIA KANAN - TEGAK LURUS */}
+          <div className="relative z-20 w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl overflow-hidden p-2 group transition-transform hover:scale-105">
+             <Image 
+               src="/images/skyvia.png" 
+               alt="Skyvia Logo" 
+               width={48} 
+               height={48} 
+               className="object-contain"
+             />
           </div>
         </div>
 
         {/* Content Area */}
         <div className="px-6 md:px-12 mt-8 md:mt-10 flex-1">
           
-          {/* Ringkasan Total Tunggakan (Tema Netral Terang) */}
+          {/* Ringkasan Total Tunggakan */}
           <div className="bg-slate-50 border border-slate-200 p-6 md:p-8 rounded-[32px] mb-8 flex items-center justify-between shadow-inner">
              <div>
                <p className="text-[10px] md:text-xs font-black text-slate-500 uppercase tracking-widest mb-1 md:mb-2">Total Belum Dibayar</p>
@@ -79,14 +91,15 @@ export default function Tagihan() {
                  </h2>
                )}
              </div>
-             <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-[20px] flex items-center justify-center shadow-md text-slate-700 rotate-3">
+             {/* Ikon Wallet - BUANG rotate-3 AGAR LURUS */}
+             <div className="w-14 h-14 md:w-16 md:h-16 bg-white rounded-[20px] flex items-center justify-center shadow-md text-slate-700">
                <Wallet className="w-6 h-6 md:w-8 md:h-8" />
              </div>
           </div>
 
           <div className="flex items-center gap-2 mb-6">
              <span className="w-2 h-2 rounded-full bg-slate-400 animate-pulse"></span>
-             <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest">Detail Riwayat Iuran</h3>
+             <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest">Detail Riwayat Iuran Skyvia</h3>
           </div>
 
           {/* List Tagihan */}
@@ -108,13 +121,13 @@ export default function Tagihan() {
                           <CalendarDays className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
                         <div>
-                          <p className="font-black text-sm md:text-base uppercase tracking-tighter">{item.bulan}</p>
+                          <p className="font-black text-sm md:text-base uppercase tracking-tighter text-black">{item.bulan}</p>
                           <p className="text-[9px] md:text-[10px] text-gray-400 font-bold uppercase tracking-widest">Iuran Bulanan</p>
                         </div>
                       </div>
                       
                       <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-black text-[9px] uppercase shadow-sm ${
-                        item.status === 'lunas' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600'
+                        item.status === 'lunas' ? 'bg-green-100 text-green-700' : 'bg-red-50 text-red-600 border border-red-100'
                       }`}>
                         {item.status === 'lunas' ? <CheckCircle2 size={12}/> : <AlertCircle size={12}/>}
                         {item.status}
@@ -124,7 +137,7 @@ export default function Tagihan() {
                     <div className="flex justify-between items-end pt-4 border-t border-dashed border-gray-100 mt-2">
                       <div>
                         <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest mb-0.5">Nominal</p>
-                        <p className="text-xl md:text-2xl font-black tracking-tighter leading-none">
+                        <p className="text-xl md:text-2xl font-black tracking-tighter leading-none text-black">
                           <span className="text-xs text-gray-400 align-top mr-1">Rp</span>
                           {item.nominal.toLocaleString('id-ID')}
                         </p>
@@ -138,8 +151,7 @@ export default function Tagihan() {
                           <span className="relative z-10 flex items-center gap-1">
                             Bayar <ChevronRight size={14} />
                           </span>
-                          {/* Hover tombol jadi hitam pekat ala dark mode */}
-                          <span className="absolute inset-0 bg-gradient-to-r from-slate-700 to-black opacity-0 group-hover/btn:opacity-100 transition-opacity duration-300"></span>
+                          <span className="absolute inset-0 bg-gradient-to-r from-slate-700 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
                         </button>
                       )}
                     </div>

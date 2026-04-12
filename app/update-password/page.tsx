@@ -2,7 +2,8 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
-import { Lock, Loader2, Check, AlertTriangle, KeyRound, ArrowRight } from 'lucide-react'
+import Image from 'next/image'
+import { Lock, Loader2, Check, AlertTriangle, KeyRound } from 'lucide-react'
 
 export default function UpdatePassword() {
   const router = useRouter()
@@ -26,7 +27,6 @@ export default function UpdatePassword() {
   const handleUpdatePassword = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    // Validasi dasar
     if (password.length < 6) {
       return triggerToast('Password minimal 6 karakter!', 'error')
     }
@@ -36,7 +36,6 @@ export default function UpdatePassword() {
 
     setLoading(true)
     try {
-      // Fungsi sakti Supabase untuk update password user yang lagi buka link reset
       const { error } = await supabase.auth.updateUser({
         password: password
       })
@@ -45,7 +44,6 @@ export default function UpdatePassword() {
 
       triggerToast('Password berhasil diubah!', 'success')
       
-      // Kasih jeda 2 detik biar warganya baca toast-nya, trus lempar ke halaman Login
       setTimeout(() => {
         router.push('/')
       }, 2000)
@@ -60,7 +58,7 @@ export default function UpdatePassword() {
   if (!isMounted) return null
 
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center items-center font-sans p-6 text-black relative">
+    <div className="min-h-screen bg-gray-50 flex justify-center items-center font-sans p-6 text-black relative overflow-x-hidden">
       
       {/* TOAST MODERN */}
       {toast.show && (
@@ -78,12 +76,19 @@ export default function UpdatePassword() {
       <div className="w-full max-w-md bg-white rounded-[40px] shadow-2xl p-10 border border-gray-100 relative z-10 animate-in zoom-in duration-500">
         
         <div className="mb-10 text-center">
-          <div className="w-16 h-16 bg-indigo-600 rounded-[20px] mx-auto mb-4 flex items-center justify-center shadow-lg shadow-indigo-600/30 rotate-3">
-             <KeyRound className="text-white w-8 h-8" />
+          {/* LOGO SKYVIA - TEGAK LURUS SESUAI TITAH KING */}
+          <div className="w-20 h-20 bg-white border border-gray-100 rounded-[24px] mx-auto mb-6 flex items-center justify-center shadow-lg p-2 transition-transform hover:scale-105">
+             <Image 
+               src="/images/skyvia.png" 
+               alt="Skyvia Logo" 
+               width={64} 
+               height={64} 
+               className="object-contain"
+             />
           </div>
           <h1 className="text-2xl font-black tracking-tighter uppercase leading-none text-black">Password Baru</h1>
           <p className="text-gray-400 text-[10px] font-bold mt-3 uppercase tracking-[0.2em] leading-relaxed">
-            Silakan masukkan password baru untuk akun Anda. Pastikan mudah diingat.
+            Portal Skyvia Digital
           </p>
         </div>
 

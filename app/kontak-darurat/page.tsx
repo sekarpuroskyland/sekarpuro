@@ -2,7 +2,8 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
-import { ArrowLeft, Phone, PhoneCall, ShieldAlert, AlertOctagon } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowLeft, Phone, PhoneCall, ShieldAlert, AlertOctagon, RefreshCcw } from 'lucide-react'
 
 export default function KontakDarurat() {
   const router = useRouter()
@@ -30,9 +31,9 @@ export default function KontakDarurat() {
       <div className="w-full md:max-w-5xl bg-white md:border border-gray-100 min-h-screen md:min-h-fit md:rounded-[40px] relative pb-10 md:pb-0 md:shadow-2xl overflow-hidden flex flex-col">
         
         {/* Header Mewah Tema Darurat (Merah/Crimson) */}
-        <div className="relative px-6 md:px-12 pt-12 pb-8 bg-gradient-to-br from-red-600 via-rose-700 to-red-900 md:rounded-b-[40px] shadow-lg overflow-hidden">
+        <div className="relative px-6 md:px-12 pt-12 pb-8 bg-gradient-to-br from-red-600 via-rose-700 to-red-900 md:rounded-b-[40px] shadow-lg overflow-hidden flex justify-between items-center">
           
-          {/* Cahaya Latar (Pointer-events-none biar ga nutupin tombol back) */}
+          {/* Cahaya Latar */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
           <div className="absolute bottom-0 left-0 w-40 h-40 bg-red-400/20 rounded-full blur-2xl translate-y-1/3 -translate-x-1/4 pointer-events-none"></div>
 
@@ -44,9 +45,20 @@ export default function KontakDarurat() {
               <ArrowLeft size={20} />
             </button>
             <div>
-              <h1 className="text-xl md:text-3xl font-black uppercase italic leading-none drop-shadow-md">Kontak Darurat</h1>
-              <p className="text-[9px] md:text-[10px] text-red-200 font-black uppercase tracking-[0.3em] mt-1 md:mt-2">Respon Cepat 24 Jam</p>
+              <h1 className="text-xl md:text-3xl font-black uppercase italic leading-none drop-shadow-md text-white">Kontak Darurat</h1>
+              <p className="text-[9px] md:text-[10px] text-red-100 font-black uppercase tracking-[0.3em] mt-1 md:mt-2">Respon Cepat 24 Jam</p>
             </div>
+          </div>
+
+          {/* LOGO SKYVIA KANAN - TEGAK LURUS */}
+          <div className="relative z-20 w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl overflow-hidden group p-2 transition-transform hover:scale-105">
+             <Image 
+               src="/images/skyvia.png" 
+               alt="Skyvia Logo" 
+               width={48} 
+               height={48} 
+               className="object-contain"
+             />
           </div>
         </div>
 
@@ -55,7 +67,7 @@ export default function KontakDarurat() {
           
           {/* Banner Peringatan */}
           <div className="bg-red-50 border border-red-100 p-6 rounded-[32px] mb-8 flex items-start gap-4 md:gap-6 shadow-inner">
-             <div className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm text-red-600 shrink-0 rotate-3 animate-pulse">
+             <div className="w-12 h-12 md:w-14 md:h-14 bg-white rounded-2xl flex items-center justify-center shadow-sm text-red-600 shrink-0 animate-pulse">
                <ShieldAlert className="w-6 h-6 md:w-7 md:h-7" />
              </div>
              <div>
@@ -68,7 +80,7 @@ export default function KontakDarurat() {
 
           <div className="flex items-center gap-2 mb-6">
              <span className="w-2 h-2 rounded-full bg-red-600 animate-pulse"></span>
-             <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest">Daftar Panggilan Cepat</h3>
+             <h3 className="font-black text-[10px] text-gray-400 uppercase tracking-widest">Daftar Panggilan Cepat Skyvia</h3>
           </div>
 
           {/* Grid Kontak */}

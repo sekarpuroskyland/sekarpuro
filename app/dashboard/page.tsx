@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '../../utils/supabase'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { 
   BadgeDollarSign, Wallet, 
   MessageCircle, Users, PhoneCall, CheckCircle2, AlertCircle, LogOut, Check, ChevronRight, ChevronLeft, BookOpen
@@ -64,7 +65,7 @@ export default function Dashboard() {
       
       return () => clearInterval(interval)
     }
-  }, [pengumumanList.length]) // <-- Fixed timer dependency
+  }, [pengumumanList.length]) 
 
   // FUNGSI GANTI SLIDE MANUAL
   const nextSlide = () => setCurrentSlide((prev) => (prev === pengumumanList.length - 1 ? 0 : prev + 1))
@@ -101,7 +102,7 @@ export default function Dashboard() {
 
   const handleKonfirmasiWA = () => {
     if (!tagihanTerbaru || !profilWarga) return
-    const phoneAdmin = "628123456789" 
+    const phoneAdmin = "6281233429997" // Nomor Client
     const pesan = `Halo Admin!%0ASaya ingin konfirmasi pembayaran iuran:%0A--------------------%0ANama: *${profilWarga.nama_lengkap}*%0ABlok: *${profilWarga.blok_rumah}*%0ABulan: *${tagihanTerbaru.bulan}*%0ANominal: *Rp ${tagihanTerbaru.nominal.toLocaleString('id-ID')}*%0A--------------------%0AMohon dicek ya Admin, terima kasih!`
     
     window.open(`https://wa.me/${phoneAdmin}?text=${pesan}`, '_blank')
@@ -134,7 +135,7 @@ export default function Dashboard() {
 
           <div className="relative flex justify-between items-start z-10">
             <div className="text-white">
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-200/80 mb-1">Skyland Portal</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-200/80 mb-1">Skyvia Portal</p>
               <h1 className="text-2xl md:text-4xl font-black mt-1 leading-none drop-shadow-md">Halo, {profilWarga?.nama_lengkap?.split(' ')[0] || 'Warga'}!</h1>
               <div className="flex items-center gap-2 mt-4">
                 <span className="text-[10px] font-black bg-white/20 backdrop-blur-sm text-white border border-white/20 px-4 py-1.5 rounded-full uppercase tracking-widest shadow-inner">
@@ -144,14 +145,20 @@ export default function Dashboard() {
               </div>
             </div>
             
-            <div className="w-16 h-16 md:w-20 md:h-20 bg-white/10 backdrop-blur-md rounded-[20px] flex items-center justify-center border border-white/20 shadow-xl relative overflow-hidden group">
-               <Users className="w-8 h-8 md:w-10 md:h-10 text-white drop-shadow-md group-hover:scale-110 transition-transform" />
-               <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-white/20"></div>
+            {/* BAGIAN LOGO KANAN */}
+            <div className="w-16 h-16 md:w-20 md:h-20 bg-white rounded-[20px] flex items-center justify-center shadow-xl relative overflow-hidden group p-2">
+               <Image 
+                 src="/images/skyvia.png" 
+                 alt="Skyvia Logo" 
+                 width={60} 
+                 height={60} 
+                 className="object-contain group-hover:scale-110 transition-transform duration-300"
+               />
             </div>
           </div>
         </div>
 
-        {/* BANNER PENGUMUMAN SLIDER (BISA DIGESER) */}
+        {/* BANNER PENGUMUMAN SLIDER */}
         {!loading && pengumumanList.length > 0 && (
           <div className="px-6 md:px-12 mt-6 animate-in fade-in slide-in-from-top-10 duration-500">
             <div className="relative group">
@@ -173,7 +180,6 @@ export default function Dashboard() {
                 >
                   {pengumumanList.map((p) => (
                     <div key={p.id} className="w-full shrink-0 bg-gradient-to-r from-amber-50 to-orange-50 p-5 md:p-6 flex flex-col md:flex-row items-start md:items-center gap-4 relative">
-                       {/* Efek Glow */}
                        <div className="absolute -right-4 -top-4 w-32 h-32 bg-amber-200/50 rounded-full blur-2xl pointer-events-none"></div>
                        
                        <div className="flex-1 z-10 pl-2">
@@ -191,7 +197,6 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* Tombol Kiri/Kanan Khusus Desktop (Muncul Pas Hover) */}
               {pengumumanList.length > 1 && (
                 <>
                   <button onClick={prevSlide} className="absolute -left-3 top-1/2 -translate-y-1/2 bg-white text-orange-500 p-2 rounded-full shadow-lg border border-gray-100 opacity-0 group-hover:opacity-100 transition-all hover:bg-orange-500 hover:text-white hidden md:block z-20">
@@ -203,7 +208,6 @@ export default function Dashboard() {
                 </>
               )}
 
-              {/* Titik Indikator (Dots) */}
               {pengumumanList.length > 1 && (
                 <div className="flex justify-center items-center gap-1.5 mt-3">
                   {pengumumanList.map((_, idx) => (
@@ -231,7 +235,6 @@ export default function Dashboard() {
             
             <div className="grid grid-cols-3 md:grid-cols-3 gap-4 text-center">
               
-              {/* TOMBOL PANDUAN (Sudah Diupdate) */}
               <button onClick={() => router.push('/panduan')} className="flex flex-col items-center group p-3 md:p-6 rounded-3xl hover:bg-gray-50 transition-colors border border-transparent hover:border-gray-100 outline-none">
                 <span className="w-14 h-14 md:w-16 md:h-16 bg-gradient-to-tr from-teal-50 to-teal-100/50 rounded-2xl flex items-center justify-center mb-3 shadow-sm group-active:scale-90 transition-transform border border-teal-100/50"><BookOpen className="text-teal-600 w-6 h-6 md:w-8 md:h-8 drop-shadow-sm" /></span>
                 <span className="text-[10px] md:text-xs font-black uppercase tracking-tighter text-gray-700 group-hover:text-black">Panduan</span>

@@ -1,5 +1,6 @@
 'use client'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { ArrowLeft, BookOpen, Wallet, MessageCircle, Phone, BadgeDollarSign } from 'lucide-react'
 
 export default function PanduanAplikasi() {
@@ -39,23 +40,36 @@ export default function PanduanAplikasi() {
   return (
     <div className="min-h-screen bg-gray-50 flex justify-center items-start md:items-center font-sans text-black relative md:p-8 overflow-x-hidden">
       
-      {/* Container Responsif: Layar HP full, Desktop jadi card lebar */}
+      {/* Container Responsif */}
       <div className="w-full md:max-w-5xl bg-white md:border border-gray-100 min-h-screen md:min-h-fit md:rounded-[40px] relative pb-10 md:pb-12 md:shadow-2xl overflow-hidden flex flex-col">
         
-        {/* Header */}
-        <div className="relative px-6 md:px-12 pt-8 md:pt-12 pb-6 md:pb-8 flex items-center gap-4 bg-white z-10 border-b md:border-b-0 border-gray-50">
-          <button onClick={() => router.push('/dashboard')} className="p-3 md:p-4 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-2xl md:rounded-[20px] active:scale-90 transition-all shadow-sm group">
-            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 text-gray-500 group-hover:text-black transition-colors" />
-          </button>
-          <div>
-            <h1 className="text-xl md:text-3xl font-black uppercase italic leading-none text-teal-800">Panduan Portal</h1>
-            <p className="text-[9px] md:text-[11px] text-teal-600 font-black uppercase tracking-[0.2em] mt-1 md:mt-2">Cara Penggunaan Aplikasi</p>
+        {/* Header - DENGAN LOGO SKYVIA LURUS */}
+        <div className="relative px-6 md:px-12 pt-8 md:pt-12 pb-6 md:pb-8 flex items-center justify-between bg-white z-10 border-b md:border-b-0 border-gray-50">
+          <div className="flex items-center gap-4">
+            <button onClick={() => router.push('/dashboard')} className="p-3 md:p-4 bg-gray-50 hover:bg-gray-100 border border-gray-100 rounded-2xl md:rounded-[20px] active:scale-90 transition-all shadow-sm group">
+              <ArrowLeft className="w-5 h-5 md:w-6 md:h-6 text-gray-500 group-hover:text-black transition-colors" />
+            </button>
+            <div>
+              <h1 className="text-xl md:text-3xl font-black uppercase italic leading-none text-teal-800">Panduan Portal</h1>
+              <p className="text-[9px] md:text-[11px] text-teal-600 font-black uppercase tracking-[0.2em] mt-1 md:mt-2">Cara Penggunaan Aplikasi</p>
+            </div>
+          </div>
+
+          {/* LOGO SKYVIA KANAN - TEGAK LURUS */}
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-white rounded-2xl flex items-center justify-center shadow-xl border border-gray-50 group p-2 transition-transform hover:scale-105">
+             <Image 
+               src="/images/skyvia.png" 
+               alt="Skyvia Logo" 
+               width={48} 
+               height={48} 
+               className="object-contain"
+             />
           </div>
         </div>
 
         <div className="px-6 md:px-12 flex flex-col gap-6 md:gap-10 mt-4 md:mt-0">
           
-          {/* Hero Section */}
+          {/* Hero Section - UPDATED TO SKYVIA */}
           <div className="bg-gradient-to-br from-teal-500 to-teal-700 p-6 md:p-10 rounded-[30px] md:rounded-[40px] shadow-lg shadow-teal-500/20 text-white relative overflow-hidden flex flex-col md:flex-row items-start md:items-center gap-4 md:gap-8">
             <div className="absolute top-0 right-0 w-32 md:w-64 h-32 md:h-64 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/4 pointer-events-none"></div>
             
@@ -66,19 +80,18 @@ export default function PanduanAplikasi() {
             <div className="relative z-10">
               <h2 className="font-black text-xl md:text-3xl uppercase leading-tight mb-2 md:mb-3 drop-shadow-sm">Selamat Datang Warga!</h2>
               <p className="text-xs md:text-sm font-bold text-teal-50 opacity-90 leading-relaxed md:leading-loose md:max-w-2xl">
-                Skyland Portal dirancang untuk mempermudah Anda memantau iuran bulanan dan berkomunikasi dengan pengurus lingkungan secara transparan.
+                Skyvia Portal dirancang untuk mempermudah Anda memantau iuran bulanan dan berkomunikasi dengan pengurus lingkungan secara transparan.
               </p>
             </div>
           </div>
 
-          {/* List Panduan (Grid Responsif) */}
+          {/* List Panduan */}
           <div>
             <div className="flex items-center gap-2 mb-4 md:mb-6">
               <span className="w-2 md:w-3 h-2 md:h-3 rounded-full bg-teal-500 animate-pulse"></span>
-              <h3 className="font-black text-[10px] md:text-xs text-gray-400 uppercase tracking-widest">Fitur Utama</h3>
+              <h3 className="font-black text-[10px] md:text-xs text-gray-400 uppercase tracking-widest">Fitur Utama Skyvia</h3>
             </div>
 
-            {/* Desktop 2 kolom, HP 1 kolom */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               {panduanList.map((item, index) => (
                 <div key={index} className="p-5 md:p-6 bg-white border-2 border-gray-50 rounded-[28px] md:rounded-[32px] shadow-sm hover:border-teal-100 hover:shadow-md transition-all group">
@@ -103,7 +116,7 @@ export default function PanduanAplikasi() {
               <h4 className="font-black text-sm md:text-lg text-black uppercase">Hubungi Admin IT</h4>
             </div>
             <button 
-              onClick={() => window.open(`https://wa.me/6281233429997?text=Halo%20Admin,%20saya%20butuh%20bantuan%20cara%20pakai%20Skyland%20Portal`, '_blank')}
+              onClick={() => window.open(`https://wa.me/6281233429997?text=Halo%20Admin,%20saya%20butuh%20bantuan%20cara%20pakai%20Skyvia%20Portal`, '_blank')}
               className="w-full md:w-auto px-8 py-4 bg-black hover:bg-gray-800 text-white rounded-2xl md:rounded-[20px] font-black text-[10px] md:text-xs uppercase tracking-widest shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               <MessageCircle size={16} /> Chat Sekarang
